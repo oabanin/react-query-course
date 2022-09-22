@@ -25,7 +25,6 @@ export function Calendar(): ReactElement {
     showAll,
     setShowAll,
   } = useAppointments();
-  console.log(appointments, monthYear, updateMonthYear);
   return (
     <Box>
       <HStack mt={10} spacing={8} justify="center">

@@ -4,9 +4,11 @@ import {
   ButtonHTMLAttributes,
   Dispatch,
   SetStateAction,
+  useCallback,
+  useEffect,
   useState,
 } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 
 import { axiosInstance } from '../../../axiosInstance';
 import { queryKeys } from '../../../react-query/constants';
@@ -45,10 +47,17 @@ export function useAppointments(): UseAppointments {
   /** ****************** START 1: monthYear state *********************** */
   // get the monthYear for the current date (for default monthYear state)
   const currentMonthYear = getMonthYearDetails(dayjs());
-
+  const queryClient = useQueryClient();
   // state to track current monthYear chosen by user
   // state value is returned in hook return object
   const [monthYear, setMonthYear] = useState(currentMonthYear);
+  useEffect(() => {
+    const nextMonth = getNewMonthYear(monthYear, 1);
+    queryClient.prefetchQuery(
+      [queryKeys.appointments, nextMonth.year, nextMonth.month],
+      () => getAppointments(monthYear.year, nextMonth.month),
+    );
+  }, [monthYear, queryClient]);
 
   // setter to update monthYear obj in state when user changes month in view,
   // returned in hook return object
@@ -65,6 +74,10 @@ export function useAppointments(): UseAppointments {
   //   appointments that the logged-in user has reserved (in white)
   const { user } = useUser();
 
+  const selectFn = useCallback((data) => getAvailableAppointments(data, user), [
+    user,
+  ]);
+
   /** ****************** END 2: filter appointments  ******************** */
   /** ****************** START 3: useQuery  ***************************** */
   // useQuery call for appointments for the current monthYear
@@ -80,6 +93,8 @@ export function useAppointments(): UseAppointments {
   const { data: appointments = {} } = useQuery(
     [queryKeys.appointments, monthYear.year, monthYear.month],
     () => getAppointments(monthYear.year, monthYear.month),
+
+    { select: showAll ? undefined : selectFn },
   );
 
   /** ****************** END 3: useQuery  ******************************* */
