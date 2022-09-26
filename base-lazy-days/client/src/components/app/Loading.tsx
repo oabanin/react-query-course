@@ -3,8 +3,8 @@ import { ReactElement } from 'react';
 import { useIsFetching } from 'react-query';
 
 export function Loading(): ReactElement {
-  // will use React Query `useIsFetching` to determine whether or not to display
   const isFetching = useIsFetching();
+
   const display = isFetching ? 'inherit' : 'none';
 
   return (

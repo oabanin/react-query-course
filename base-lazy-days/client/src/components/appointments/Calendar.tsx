@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 import {
   Box,
   Checkbox,
@@ -25,6 +24,7 @@ export function Calendar(): ReactElement {
     showAll,
     setShowAll,
   } = useAppointments();
+
   return (
     <Box>
       <HStack mt={10} spacing={8} justify="center">

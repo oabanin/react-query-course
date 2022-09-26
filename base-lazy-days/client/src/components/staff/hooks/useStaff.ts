@@ -4,10 +4,8 @@ import { useQuery } from 'react-query';
 import type { Staff } from '../../../../../shared/types';
 import { axiosInstance } from '../../../axiosInstance';
 import { queryKeys } from '../../../react-query/constants';
-import { getAvailableAppointments } from '../../appointments/utils';
 import { filterByTreatment } from '../utils';
 
-// for when we need a query function for useQuery
 async function getStaff(): Promise<Staff[]> {
   const { data } = await axiosInstance.get('/staff');
   return data;
@@ -18,37 +16,19 @@ interface UseStaff {
   filter: string;
   setFilter: Dispatch<SetStateAction<string>>;
 }
+
 export function useStaff(): UseStaff {
   // for filtering staff by treatment
   const [filter, setFilter] = useState('all');
+  const selectFn = useCallback(
+    (unfilteredStaff) => filterByTreatment(unfilteredStaff, filter),
+    [filter],
+  );
 
-  // TODO: get data from server via useQuery
-
-  const selectFn = useCallback((data) => filterByTreatment(data, filter), [
-    filter,
-  ]);
-  const { data: staff = [] } = useQuery(queryKeys.staff, getStaff, {
-    placeholderData: [
-      {
-        id: 1,
-        name: 'Divya',
-        treatmentNames: ['facial', 'scrub'],
-        image: {
-          fileName: 'divya.jpg',
-          authorName: 'Pradeep Ranjan',
-          authorLink:
-            'https://unsplash.com/@tinywor1d?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText',
-          platformName: 'Unsplash',
-          platformLink: 'https://unsplash.com/',
-        },
-      },
-    ],
-    select: filter === 'all' ? undefined : selectFn,
+  const fallback = [];
+  const { data: staff = fallback } = useQuery(queryKeys.staff, getStaff, {
+    select: filter !== 'all' ? selectFn : undefined,
   });
 
-  return {
-    staff,
-    filter,
-    setFilter,
-  };
+  return { staff, filter, setFilter };
 }
